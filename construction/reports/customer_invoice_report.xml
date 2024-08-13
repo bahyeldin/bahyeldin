@@ -1,0 +1,89 @@
+<odoo>
+
+      <template id="template_custom_invoice">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Invoice Report</h2>
+
+                        <!-- عرض partner_id, inv_num_con, invoice_date قبل الجدول -->
+                        <div>
+                            <strong>customer:</strong> <span t-esc="o.partner_id.name"/>
+                        </div>
+                        <div>
+                            <strong>Invoice Ref.:</strong> <span t-esc="o.inv_num_con"/>
+                        </div>
+                        <div>
+                            <strong>Invoice Date:</strong> <span t-esc="o.invoice_date"/>
+                        </div>
+
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="border: 1px solid black; text-align: center;">Description</th>
+                                    <th colspan="2" style="border: 1px solid black; text-align: center;">Previous</th>
+                                    <th colspan="2" style="border: 1px solid black; text-align: center;">Total</th>
+                                    <th rowspan="2" style="border: 1px solid black; text-align: center;">Unit Price</th>
+                                    <th rowspan="2" style="border: 1px solid black; text-align: center;">Subtotal</th>
+                                </tr>
+                                <tr>
+                                    <th style="border: 1px solid black; text-align: center;">Qty</th>
+                                    <th style="border: 1px solid black; text-align: center;">Percentage %</th>
+                                    <th style="border: 1px solid black; text-align: center;">Qty</th>
+                                    <th style="border: 1px solid black; text-align: center;">Percentage %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="o.invoice_line_ids" t-as="line">
+                                    <t t-if="line.display_type == 'line_section'">
+                                        <!-- عرض القسم -->
+                                        <td colspan="7" style="border: 1px solid black; padding: 5px; background-color: #e0e0e0; font-weight: bold;" t-esc="line.name"/>
+                                    </t>
+                                    <t t-else="">
+                                        <!-- عرض السطر العادي -->
+                                        <td t-esc="line.name" style="border: 1px solid black; padding: 5px;"/>
+                                        <td t-esc="line.previous_qty" style="border: 1px solid black; padding: 5px;"/>
+                                        <td t-esc="line.previous_percentage" style="border: 1px solid black; padding: 5px;"/>
+                                        <td t-esc="line.total_qty" style="border: 1px solid black; padding: 5px;"/>
+                                        <td t-esc="line.completion_percentage" style="border: 1px solid black; padding: 5px;"/>
+                                        <td t-esc="line.price_unit" style="border: 1px solid black; padding: 5px;"/>
+                                        <td t-esc="line.price_subtotal" style="border: 1px solid black; padding: 5px;"/>
+                                    </t>
+                                </tr>
+                                <!-- حساب وتجميع القيمة الإجمالية لـ price_subtotal -->
+                                <tr>
+                                    <td colspan="6" style="border: 1px solid black; text-align: right;"><strong>Total:</strong></td>
+                                    <td t-esc="sum(line.price_subtotal for line in o.invoice_line_ids)" style="border: 1px solid black;"/>
+                                </tr>
+                                <!-- حساب إجمالي الضريبة -->
+                                <tr>
+                                    <td colspan="6" style="border: 1px solid black; text-align: right;"><strong>Total Tax:</strong></td>
+                                    <td t-esc="sum(line.price_total - line.price_subtotal for line in o.invoice_line_ids)" style="border: 1px solid black;"/>
+                                </tr>
+                                <!-- حساب الإجمالي بعد الضريبة -->
+                                <tr>
+                                    <td colspan="6" style="border: 1px solid black; text-align: right;"><strong>Total with Tax:</strong></td>
+                                    <td t-esc="sum(line.price_total for line in o.invoice_line_ids)" style="border: 1px solid black;"/>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="action_report_custom_invoice" model="ir.actions.report">
+        <field name="name">Construction Invoice Report PDF</field>
+        <field name="model">account.move</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">construction.template_custom_invoice</field>
+        <field name="report_file">construction.template_custom_invoice</field>
+        <field name="binding_model_id" ref="model_account_move"/>
+        <field name="binding_type">report</field>
+    </record>
+
+
+
+</odoo>
