@@ -21,7 +21,7 @@
 
     ],
     'installable': True,
-    'images': ['static/description/invoice_report.png'],
+    'images': ['static/description/icon.png'],
     'application': True,
     'license': 'LGPL-3',
 }
