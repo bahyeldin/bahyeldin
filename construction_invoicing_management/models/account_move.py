@@ -39,7 +39,7 @@ class AccountMoveLine(models.Model):
 class AccountMove(models.Model):
     _inherit = 'account.move'
 
-    construction = fields.Boolean(default=True, string='Is a construction')
+    construction = fields.Boolean(default=False, string='Is a construction')
     inv_num_con = fields.Char(string='Construction Invoice Num')
 
     construction_ids = fields.One2many('account.move.line', 'construction_id', string='construction ids')
