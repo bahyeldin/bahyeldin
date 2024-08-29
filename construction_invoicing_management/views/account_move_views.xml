@@ -4,49 +4,55 @@
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+
             <xpath expr="//field[@name='invoice_line_ids']/tree" position="inside" decoration-info="True">
-                <field name="previous_qty" string='Pre qty' optional="show"/>
-                <field name="previous_percentage" string='Pre %' optional="show"/>
-                <field name="completion_percentage" string='%of Complete' style="width: 500px;" optional="show"/>
-                <field name="total_qty" string='total qty' optional="show"/>
+                <field name="previous_qty" string='previous qty' optional="show" auto_width="True"/>
+                <field name="previous_percentage" string='previous percent
+                 of completion' optional="show" auto_width="True"/>
+                <field name="total_qty" string='total qty' optional="show" auto_width="True"/>
+                <field name="completion_percentage" string='percent
+                of Complete' style="width: 500px;" optional="show" auto_width="True"/>
 
 
-                <field name="comulative_invoice" readonly="1" string='comulative invoice' style="width: 50px;" optional="show"/>
+
+                <field name="comulative_invoice" readonly="1" string='cumulative invoice' style="width: 50px;"
+                       optional="show" auto_width="True"/>
 
                 <field name="price_subtotal" string='subtotal' invisible="1"/>
-                <field name="price_subtotal" string='current subtotal' optional="show"/>
+                <field name="price_subtotal" string='current subtotal' optional="show" auto_width="True"/>
             </xpath>
-             <xpath expr="//field[@name='quantity']" position="attributes">
+            <xpath expr="//field[@name='quantity']" position="attributes">
                 <attribute name="invisible">1</attribute>
             </xpath>
 
             <xpath expr="//field[@name='invoice_line_ids']/form" position="inside">
-                <field name="completion_percentage"/>
-                <field name="total_qty"/>
+                <field name="completion_percentage" string="percent of completion" auto_width="True"/>
+                <field name="total_qty" string="Total Qty" auto_width="True"/>
 
             </xpath>
+             <xpath expr="//tree/control" position="inside">
+            <button name="action_set_previous_qty" type="object" string="rest previous qty and % to equal current qty and %" class="btn-primary" />
+        </xpath>
 
         </field>
     </record>
+
+
+
+
 
     <record id="view_move_form2_inherit" model="ir.ui.view">
         <field name="name">account.move.form.inherit</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
-             <field name="partner_id" position="after">
-                <field name="construction"  />
-                  <field name="inv_num_con"
-                               attrs="{'invisible': [('construction', '=', False)]}"/>
+            <field name="partner_id" position="after">
+                <field name="construction"/>
+                <field name="inv_num_con"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
             </field>
         </field>
     </record>
-
-
-
-
-
-
 
 
 </odoo>

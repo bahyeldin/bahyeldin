@@ -142,7 +142,7 @@
 
     <menuitem id="menu_construction_root"
               name="Construction"
-              parent="sale.sale_menu_root"
+
               sequence="14"/>
 
     <menuitem id="menu_construction_invoices"

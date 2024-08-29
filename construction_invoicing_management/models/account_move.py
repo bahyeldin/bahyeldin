@@ -36,6 +36,15 @@ class AccountMoveLine(models.Model):
 
 
 
+
+ # زر جديد
+    def action_set_previous_qty(self):
+        for line in self:
+            line.previous_qty = line.total_qty
+            line.previous_percentage = line.completion_percentage
+
+
+
 class AccountMove(models.Model):
     _inherit = 'account.move'
 

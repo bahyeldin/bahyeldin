@@ -1,11 +1,11 @@
 
 {
-    'name': 'Construction Invoicing Management',
+    'name': 'contractor statements Management',
     'version': '1.0',
-    'summary': 'Construction Invoicing Management Module is a specially designed module for managing and generating invoices '
+    'summary': 'Construction invoices Management Module is a specially designed module for managing and generating invoices '
                'for construction projects. This module is ideal for construction companies that need to create detailed and accurate invoices'
                ' for their clients, reflecting all work completed ',
-    'price': '15',
+    'price': '120',
     'currency': 'USD',
     'description': """
         Construction Invoicing Management
