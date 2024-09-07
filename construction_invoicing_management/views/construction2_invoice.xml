@@ -1,0 +1,926 @@
+<odoo>
+
+    <record id="view_move6_form" model="ir.ui.view">
+        <field name="name">account.move2.tree</field>
+        <field name="model">account.move</field>
+        <field name="arch" type="xml">
+
+            <form string="Account Entry" js_class="account_move_form">
+                <header>
+                    <!-- Post -->
+                    <button name="action_post" string="Post" class="oe_highlight" type="object" data-hotkey="v"
+                            context="{'validate_analytic': True}"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;hide_post_button&quot;, &quot;=&quot;, true], [&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]]}"/>
+                    <button name="action_post" string="Confirm" class="oe_highlight" type="object" data-hotkey="v"
+                            context="{'validate_analytic': True}"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;hide_post_button&quot;, &quot;=&quot;, true], [&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;], [&quot;display_inactive_currency_warning&quot;, &quot;=&quot;, true]]}"/>
+                    <!-- Send (only invoices) -->
+                    <button name="action_invoice_sent" type="object" string="Send &amp; Print" class="oe_highlight"
+                            data-hotkey="y"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;], [&quot;is_move_sent&quot;, &quot;=&quot;, true], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;]]]}"/>
+                    <button name="action_invoice_sent" type="object" string="Send &amp; Print" data-hotkey="y"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;], [&quot;is_move_sent&quot;, &quot;=&quot;, false], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;]]]}"/>
+                    <!-- Register Payment (only invoices / receipts) -->
+                    <button name="action_register_payment" id="account_invoice_payment_btn" type="object"
+                            class="oe_highlight" context="{'dont_redirect_to_payments': True}" string="Register Payment"
+                            data-hotkey="g"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, &quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;], [&quot;payment_state&quot;, &quot;not in&quot;, [&quot;partial&quot;, &quot;not_paid&quot;]], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]], [&quot;authorized_transaction_ids&quot;, &quot;!=&quot;, []]]}"/>
+                    <field name="authorized_transaction_ids"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <button name="payment_action_capture" type="object" string="Capture Transaction"
+                            class="oe_highlight" data-hotkey="shift+g"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;]], [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;], [&quot;authorized_transaction_ids&quot;, &quot;=&quot;, []]]}"/>
+                    <button name="payment_action_void" type="object" string="Void Transaction" data-hotkey="shift+v"
+                            confirm="Are you sure you want to void the authorized transaction? This action can't be undone."
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;]], [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;], [&quot;authorized_transaction_ids&quot;, &quot;=&quot;, []]]}"/>
+                    <!-- Preview (only customer invoices) -->
+                    <button name="preview_invoice" type="object" string="Preview" data-hotkey="o"
+                            title="Preview invoice"
+                            modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;]]]}"/>
+                    <!-- Reverse -->
+                    <button name="228" string="Reverse Entry" type="action" data-hotkey="z"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;], &quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;], [&quot;payment_state&quot;, &quot;=&quot;, &quot;reversed&quot;]]}"/>
+                    <button name="action_reverse" string="Add Credit Note" type="object"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;in_invoice&quot;]], [&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;]]}"/>
+                    <!-- Cancel -->
+                    <button name="button_cancel" string="Cancel Entry" type="object" data-hotkey="w"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;id&quot;, &quot;=&quot;, false], [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]]}"/>
+                    <field name="edi_show_cancel_button"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="edi_show_abandon_cancel_button"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <button name="button_cancel_posted_moves" string="Request EDI Cancellation" type="object"
+                            modifiers="{&quot;invisible&quot;: [[&quot;edi_show_cancel_button&quot;, &quot;=&quot;, false]]}"/>
+                    <button name="button_abandon_cancel_posted_posted_moves" string="Call off EDI Cancellation"
+                            type="object"
+                            modifiers="{&quot;invisible&quot;: [[&quot;edi_show_abandon_cancel_button&quot;, &quot;=&quot;, false]]}"/>
+                    <button name="button_cancel" string="Cancel" type="object" data-hotkey="w"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;id&quot;, &quot;=&quot;, false], [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;move_type&quot;, &quot;==&quot;, &quot;entry&quot;]]}"/>
+                    <button name="button_draft" string="Reset to Draft" type="object" data-hotkey="q"
+                            modifiers="{&quot;invisible&quot;: [[&quot;show_reset_to_draft_button&quot;, &quot;=&quot;, false]]}"/>
+                    <!-- Set as Checked -->
+                    <button name="button_set_checked" string="Set as Checked" type="object" data-hotkey="k"
+                            modifiers="{&quot;invisible&quot;: [[&quot;to_check&quot;, &quot;=&quot;, false]]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted" on_change="1"
+                           modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+
+                </header>
+                <field name="edi_blocking_level" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                <field name="edi_error_count" on_change="1"
+                       modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                <div class="alert alert-info" role="alert" style="margin-bottom:0px;"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;edi_web_services_to_process&quot;, &quot;in&quot;, [&quot;&quot;, false]], [&quot;state&quot;, &quot;=&quot;, &quot;draft&quot;]]}">
+                    <div>The invoice will be processed asynchronously by the following E-invoicing service :
+                        <field name="edi_web_services_to_process" class="oe_inline"
+                               modifiers="{&quot;readonly&quot;: true}"/>
+                    </div>
+                    <button name="button_process_edi_web_services" type="object" class="oe_link" string="Process now"/>
+                </div>
+                <div class="alert alert-danger" role="alert" style="margin-bottom:0px;"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;edi_error_count&quot;, &quot;=&quot;, 0], [&quot;edi_blocking_level&quot;, &quot;!=&quot;, &quot;error&quot;]]}">
+                    <div class="o_row">
+                        <field name="edi_error_message" modifiers="{&quot;readonly&quot;: true}"/>
+                        <button name="280" string="⇒ See errors" type="action" class="oe_link"
+                                modifiers="{&quot;invisible&quot;: [[&quot;edi_error_count&quot;, &quot;=&quot;, 1]]}"/>
+                        <button name="action_retry_edi_documents_error" type="object" class="oe_link oe_inline"
+                                string="Retry"/>
+                    </div>
+                </div>
+                <div class="alert alert-warning" role="alert" style="margin-bottom:0px;"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;edi_error_count&quot;, &quot;=&quot;, 0], [&quot;edi_blocking_level&quot;, &quot;!=&quot;, &quot;warning&quot;]]}">
+                    <div class="o_row">
+                        <field name="edi_error_message" modifiers="{&quot;readonly&quot;: true}"/>
+                        <button name="280" string="⇒ See errors" type="action" class="oe_link"
+                                modifiers="{&quot;invisible&quot;: [[&quot;edi_error_count&quot;, &quot;=&quot;, 1]]}"/>
+                    </div>
+                </div>
+                <div class="alert alert-info" role="alert" style="margin-bottom:0px;"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;edi_error_count&quot;, &quot;=&quot;, 0], [&quot;edi_blocking_level&quot;, &quot;!=&quot;, &quot;info&quot;]]}">
+                    <div class="o_row">
+                        <field name="edi_error_message" modifiers="{&quot;readonly&quot;: true}"/>
+                        <button name="280" string="⇒ See errors" type="action" class="oe_link"
+                                modifiers="{&quot;invisible&quot;: [[&quot;edi_error_count&quot;, &quot;=&quot;, 1]]}"/>
+                    </div>
+                </div>
+                <div class="alert alert-warning mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;duplicated_ref_ids&quot;, &quot;=&quot;, []]]}">
+                    Warning: this bill might be a duplicate of
+                    <button name="open_duplicated_ref_bill_view" type="object" string="one of those bills"
+                            class="btn btn-link p-0"/>
+                </div>
+                <!-- Invoice outstanding credits -->
+                <div class="alert alert-warning mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;tax_lock_date_message&quot;, &quot;=&quot;, false]]}">
+                    <field name="tax_lock_date_message" nolabel="1" modifiers="{&quot;readonly&quot;: true}"/>
+                </div>
+                <div class="alert alert-info mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_receipt&quot;]], [&quot;invoice_has_outstanding&quot;, &quot;=&quot;, false], [&quot;payment_state&quot;, &quot;not in&quot;, [&quot;not_paid&quot;, &quot;partial&quot;]]]}">
+                    You have
+                    <bold>
+                        <a class="alert-link" href="#outstanding" role="button">outstanding credits</a>
+                    </bold>
+                    for this customer. You can allocate them to mark this invoice as paid.
+                </div>
+                <div class="alert alert-info mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_receipt&quot;]], [&quot;invoice_has_outstanding&quot;, &quot;=&quot;, false], [&quot;payment_state&quot;, &quot;not in&quot;, [&quot;not_paid&quot;, &quot;partial&quot;]]]}">
+                    You have
+                    <bold>
+                        <a class="alert-link" href="#outstanding" role="button">outstanding debits</a>
+                    </bold>
+                    for this vendor. You can allocate them to mark this bill as paid.
+                </div>
+                <div class="alert alert-info mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;!=&quot;, &quot;out_refund&quot;], [&quot;invoice_has_outstanding&quot;, &quot;=&quot;, false], [&quot;payment_state&quot;, &quot;not in&quot;, [&quot;not_paid&quot;, &quot;partial&quot;]]]}">
+                    You have
+                    <bold>
+                        <a class="alert-link" href="#outstanding" role="button">outstanding debits</a>
+                    </bold>
+                    for this customer. You can allocate them to mark this credit note as paid.
+                </div>
+                <div class="alert alert-info mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;!=&quot;, &quot;in_refund&quot;], [&quot;invoice_has_outstanding&quot;, &quot;=&quot;, false], [&quot;payment_state&quot;, &quot;not in&quot;, [&quot;not_paid&quot;, &quot;partial&quot;]]]}">
+                    You have
+                    <bold>
+                        <a class="alert-link" href="#outstanding" role="button">outstanding credits</a>
+                    </bold>
+                    for this vendor. You can allocate them to mark this credit note as paid.
+                </div>
+                <div class="alert alert-info mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;auto_post&quot;, &quot;!=&quot;, &quot;at_date&quot;]]}">
+                    This move is configured to be posted automatically at the accounting date:
+                    <field name="date"
+                           on_change="1"
+                           modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                    .
+                </div>
+                <div class="alert alert-info mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;auto_post&quot;, &quot;=&quot;, &quot;no&quot;], [&quot;auto_post&quot;, &quot;=&quot;, &quot;at_date&quot;]]}">
+                    <field name="auto_post" on_change="1"
+                           modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                    auto-posting enabled. Next accounting date:
+                    <field name="date" on_change="1"
+                           modifiers="{&quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                    .
+                    <span modifiers="{&quot;invisible&quot;: [[&quot;auto_post_until&quot;, &quot;=&quot;, false]]}">The
+                        recurrence will end on
+                        <field name="auto_post_until" modifiers="{&quot;readonly&quot;: true}"/>
+                        (included).
+                    </span>
+                </div>
+                <div class="alert alert-warning mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [[&quot;partner_credit_warning&quot;, &quot;=&quot;, &quot;&quot;]]}">
+                    <field name="partner_credit_warning" modifiers="{&quot;readonly&quot;: true}"/>
+                </div>
+                <!-- Currency consistency -->
+                <div class="alert alert-warning mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;display_inactive_currency_warning&quot;, &quot;=&quot;, false], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;in_receipt&quot;]]]}">
+                    In order to validate this bill, you must <button class="oe_link" type="object"
+                                                                     name="action_activate_currency"
+                                                                     style="padding: 0; vertical-align: baseline;">
+                    activate the currency of the bill</button>. The journal entries need to be computed by Odoo before
+                    being posted in your company's currency.
+                </div>
+                <div class="alert alert-warning mb-0" role="alert"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;display_inactive_currency_warning&quot;, &quot;=&quot;, false], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;out_receipt&quot;]]]}">
+                    In order to validate this invoice, you must <button class="oe_link" type="object"
+                                                                        name="action_activate_currency"
+                                                                        style="padding: 0; vertical-align: baseline;">
+                    activate the currency of the invoice</button>. The journal entries need to be computed by Odoo
+                    before being posted in your company's currency.
+                </div>
+                <sheet>
+                    <div name="button_box" class="oe_button_box">
+                        <button name="action_open_business_doc" class="oe_stat_button" icon="fa-bars" type="object"
+                                string="1 Payment"
+                                modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;], [&quot;id&quot;, &quot;=&quot;, false], [&quot;payment_id&quot;, &quot;=&quot;, false]]}">
+                        </button>
+                        <button name="open_reconcile_view" class="oe_stat_button" icon="fa-bars" type="object"
+                                string="Reconciled Items"
+                                modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;], [&quot;id&quot;, &quot;=&quot;, false], [&quot;has_reconciled_entries&quot;, &quot;=&quot;, false]]}">
+                        </button>
+                        <button name="open_created_caba_entries" class="oe_stat_button" icon="fa-usd" type="object"
+                                string="Cash Basis Entries"
+                                modifiers="{&quot;invisible&quot;: [[&quot;tax_cash_basis_created_move_ids&quot;, &quot;=&quot;, []]]}">
+                        </button>
+                        <field name="transaction_ids" on_change="1"
+                               modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                        <button name="action_view_payment_transactions" type="object" class="oe_stat_button"
+                                icon="fa-money" string="Payment Transaction"
+                                modifiers="{&quot;invisible&quot;: [[&quot;transaction_ids&quot;, &quot;=&quot;, []]]}"/>
+
+                    </div>
+
+                    <!-- Payment status for invoices / receipts -->
+                    <widget name="web_ribbon" title="Paid"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;payment_state&quot;, &quot;!=&quot;, &quot;paid&quot;], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]]}"/>
+                    <widget name="web_ribbon" title="In Payment"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;payment_state&quot;, &quot;!=&quot;, &quot;in_payment&quot;], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]]}"/>
+                    <widget name="web_ribbon" title="Partial"
+                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;payment_state&quot;, &quot;!=&quot;, &quot;partial&quot;], [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]]}"/>
+                    <widget name="web_ribbon" title="Reversed" bg_color="bg-danger"
+                            modifiers="{&quot;invisible&quot;: [[&quot;payment_state&quot;, &quot;!=&quot;, &quot;reversed&quot;]]}"/>
+                    <widget name="web_ribbon" text="Invoicing App Legacy" bg_color="bg-info"
+                            tooltip="This entry has been generated through the Invoicing app, before installing Accounting. It has been disabled by the 'Invoicing Switch Threshold Date' setting so that it does not impact your accounting."
+                            modifiers="{&quot;invisible&quot;: [[&quot;payment_state&quot;, &quot;!=&quot;, &quot;invoicing_legacy&quot;]]}"/>
+
+                    <!-- Invisible fields -->
+                    <field name="id" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="company_id" on_change="1" modifiers="{&quot;invisible&quot;: true}" can_create="true"
+                           can_write="true"/>
+                    <field name="journal_id" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;required&quot;: true}" can_create="true"
+                           can_write="true"/>
+                    <field name="show_name_warning" modifiers="{&quot;invisible&quot;: true}"/>
+                    <field name="posted_before" on_change="1" modifiers="{&quot;invisible&quot;: true}"/>
+                    <field name="move_type" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                    <field name="payment_state" force_save="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="invoice_filter_type_domain" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="suitable_journal_ids"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="currency_id" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;posted&quot;, &quot;cancel&quot;]]], &quot;required&quot;: true}"
+                           can_create="true" can_write="true"/>
+                    <field name="company_currency_id" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="commercial_partner_id" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="bank_partner_id" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="display_qr_code"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="show_reset_to_draft_button"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+
+
+                    <field name="invoice_has_outstanding"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="is_move_sent" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="has_reconciled_entries"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="restrict_mode_hash_table" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="country_code" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="display_inactive_currency_warning"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="statement_line_id" on_change="1" modifiers="{&quot;invisible&quot;: true}"
+                           can_create="true" can_write="true"/>
+                    <field name="payment_id" on_change="1" modifiers="{&quot;invisible&quot;: true}" can_create="true"
+                           can_write="true"/>
+                    <field name="tax_country_id" modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="tax_cash_basis_created_move_ids" modifiers="{&quot;invisible&quot;: true}"/>
+                    <field name="quick_edit_mode" on_change="1"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="hide_post_button"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="duplicated_ref_ids"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                    <field name="quick_encoding_vals"
+                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+
+                    <div class="oe_title">
+                        <span class="o_form_label">
+                            <field name="move_type" nolabel="1" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;]], &quot;readonly&quot;: true, &quot;required&quot;: true}"/>
+                        </span>
+
+                        <div class="text-warning"
+                             modifiers="{&quot;invisible&quot;: [[&quot;show_name_warning&quot;, &quot;=&quot;, false]]}">
+                            The current highest number is<field class="oe_inline" name="highest_name" on_change="1"
+                                                                modifiers="{&quot;readonly&quot;: true}"/>. You might
+                            want to put a higher number here.
+                        </div>
+
+                        <h1>
+                            <field name="name" placeholder="Draft" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;name&quot;, &quot;=&quot;, &quot;/&quot;], [&quot;posted_before&quot;, &quot;=&quot;, false], [&quot;quick_edit_mode&quot;, &quot;=&quot;, false]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"/>
+
+                            <span modifiers="{&quot;invisible&quot;: [&quot;|&quot;, &quot;|&quot;, &quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;name&quot;, &quot;!=&quot;, &quot;/&quot;], [&quot;posted_before&quot;, &quot;=&quot;, true], [&quot;quick_edit_mode&quot;, &quot;=&quot;, true]]}">
+                                Draft
+                            </span>
+                        </h1>
+                    </div>
+                    <group>
+                        <group id="header_left_group">
+
+                            <label for="partner_id" string="Customer" style="font-weight:bold;"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;out_receipt&quot;]]]}"/>
+                            <label for="partner_id" string="Vendor" style="font-weight:bold;"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;in_receipt&quot;]]]}"/>
+                            <field name="partner_id" widget="res_partner_many2one" nolabel="1"
+                                   context="{                                             'res_partner_search_mode': (context.get('default_move_type', 'entry') in ('out_invoice', 'out_refund', 'out_receipt') and 'customer') or (context.get('default_move_type', 'entry') in ('in_invoice', 'in_refund', 'in_receipt') and 'supplier') or False,                                             'show_address': 1, 'default_is_company': True, 'show_vat': True}"
+                                   domain="[('type', '!=', 'private'), ('company_id', 'in', (False, company_id))]"
+                                   options="{&quot;always_reload&quot;: True, &quot;no_quick_create&quot;: True}"
+                                   on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}"
+                                   can_create="true" can_write="true"/>
+                            <field name="construction"/>
+
+                            <field name="quick_edit_total_amount" class="w-50" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;], [&quot;quick_edit_mode&quot;, &quot;=&quot;, false]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"/>
+                            <label for="ref" string="Bill Reference"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_receipt&quot;, &quot;in_refund&quot;]]]}"/>
+                            <field name="ref" nolabel="1" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_receipt&quot;, &quot;in_refund&quot;]]]}"/>
+                            <field name="ref" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;in&quot;, [&quot;in_invoice&quot;, &quot;in_receipt&quot;, &quot;in_refund&quot;, &quot;out_invoice&quot;, &quot;out_refund&quot;]]]}"/>
+                            <field name="tax_cash_basis_origin_move_id" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;tax_cash_basis_origin_move_id&quot;, &quot;=&quot;, false]], &quot;readonly&quot;: true}"/>
+                            <label name="invoice_vendor_bill_id_label" for="invoice_vendor_bill_id"
+                                   string="Auto-Complete" class="oe_edit_only"
+                                   modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;move_type&quot;, &quot;!=&quot;, &quot;in_invoice&quot;]]}"/>
+                            <field name="invoice_vendor_bill_id" nolabel="1" class="oe_edit_only"
+                                   domain="[('company_id', '=', company_id), ('partner_id','child_of', [partner_id]), ('move_type','=','in_invoice')]"
+                                   placeholder="Select an old vendor bill" options="{'no_create': True}"
+                                   context="{'show_total_amount': True}" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;move_type&quot;, &quot;!=&quot;, &quot;in_invoice&quot;]]}"
+                                   can_create="true" can_write="true"/>
+                        </group>
+                        <group id="header_right_group">
+
+                            <!-- Invoice date (only invoices / receipts) -->
+                            <label for="invoice_date" string="Invoice Date" style="font-weight:bold;"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;out_receipt&quot;]]]}"/>
+                            <label for="invoice_date" string="Bill Date" style="font-weight:bold;"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;in_receipt&quot;]]]}"/>
+                            <field name="invoice_date" nolabel="1" options="{'datepicker': {'warn_future': true}}"
+                                   on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}"/>
+
+                            <field name="date" string="Accounting Date" on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;out_receipt&quot;]], [&quot;quick_edit_mode&quot;, &quot;=&quot;, false]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]], &quot;required&quot;: true}"/>
+                            <field name="payment_reference"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]]}"/>
+                            <field name="partner_bank_id" context="{'default_partner_id': bank_partner_id}"
+                                   domain="[('partner_id', '=', bank_partner_id)]"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;in_receipt&quot;]]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"
+                                   can_create="true" can_write="true"/>
+
+                            <!-- Invoice payment terms (only invoices) + due date (only invoices / receipts) -->
+                            <div class="o_td_label"
+                                 modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]]}">
+                                <label for="invoice_date_due" string="Due Date"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;invoice_payment_term_id&quot;, &quot;!=&quot;, false]]}"/>
+                                <label for="invoice_payment_term_id" string="Payment terms"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;invoice_payment_term_id&quot;, &quot;=&quot;, false]]}"/>
+                            </div>
+                            <div class="d-flex"
+                                 modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]]]}">
+                                <field name="invoice_date_due" force_save="1" placeholder="Date" on_change="1"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;invoice_payment_term_id&quot;, &quot;!=&quot;, false]]}"/>
+                                <span class="o_form_label mx-3 oe_edit_only"
+                                      modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], [&quot;invoice_payment_term_id&quot;, &quot;!=&quot;, false]]}">
+                                    or
+                                </span>
+                                <field name="invoice_payment_term_id"
+                                       context="{'example_date': invoice_date, 'example_amount': tax_totals['amount_total']}"
+                                       placeholder="Terms" on_change="1"
+                                       modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;posted&quot;, &quot;cancel&quot;]]]}"
+                                       can_create="true" can_write="true"/>
+                            </div>
+
+                            <label for="journal_id"/>
+                            <div name="journal_div" class="d-flex">
+                                <field name="journal_id" options="{'no_create': True, 'no_open': True}" on_change="1"
+                                       modifiers="{&quot;readonly&quot;: [[&quot;posted_before&quot;, &quot;=&quot;, true]], &quot;required&quot;: true}"
+                                       can_create="true" can_write="true"/>
+                                <span class="oe_inline o_form_label mx-3"
+                                      modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;]]}">
+                                    in
+                                </span>
+                                <field name="currency_id" on_change="1"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]], &quot;required&quot;: true}"
+                                       can_create="true" can_write="true"/>
+                            </div>
+                            <field name="edi_state"
+                                   modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;edi_state&quot;, &quot;=&quot;, false], [&quot;state&quot;, &quot;=&quot;, &quot;draft&quot;]], &quot;readonly&quot;: true}"/>
+
+                        </group>
+                    </group>
+                    <notebook>
+                        <page id="invoice_tab" name="invoice_tab" string="Invoice Lines"
+                              modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;]]}">
+                            <field name="invoice_line_ids" widget="section_and_note_one2many" mode="tree,kanban"
+                                   context="{                                            'default_move_type': context.get('default_move_type'),                                            'journal_id': journal_id,                                            'default_partner_id': commercial_partner_id,                                            'default_currency_id': currency_id or company_currency_id,                                            'default_display_type': 'product',                                            'quick_encoding_vals': quick_encoding_vals,                                        }"
+                                   on_change="1"
+                                   modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}">
+
+                                <tree editable="bottom" string="Journal Items" default_order="sequence, id">
+                                    <control>
+
+                                        <create name="add_line_control" string="Add a line"/>
+                                        <create name="add_section_control" string="Add a section"
+                                                context="{'default_display_type': 'line_section'}"/>
+                                        <create name="add_note_control" string="Add a note"
+                                                context="{'default_display_type': 'line_note'}"/>
+                                        <button name="action_set_previous_qty" type="object"
+                                                string="55555555 previous(qty and %)to equal current (qty and %)"/>
+
+
+                                    </control>
+
+                                    <!-- Displayed fields -->
+                                    <field name="sequence" widget="handle"/>
+                                    <field name="product_id" optional="show" widget="many2one_barcode"
+                                           domain="                                                     context.get('default_move_type') in ('out_invoice', 'out_refund', 'out_receipt')                                                     and [('sale_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]                                                     or [('purchase_ok', '=', True), '|', ('company_id', '=', False), ('company_id', '=', parent.company_id)]                                                "
+                                           on_change="1" can_create="true" can_write="true"/>
+                                    <field name="name" widget="section_and_note_text" optional="show"/>
+                                    <field name="account_id"
+                                           context="{'partner_id': partner_id, 'move_type': parent.move_type}"
+                                           options="{'no_create': True}"
+                                           domain="[('deprecated', '=', False), ('account_type', 'not in', ('asset_receivable', 'liability_payable')), ('company_id', '=', parent.company_id), ('is_off_balance', '=', False)]"
+                                           on_change="1"
+                                           modifiers="{&quot;required&quot;: [[&quot;display_type&quot;, &quot;not in&quot;, [&quot;line_note&quot;, &quot;line_section&quot;]]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="analytic_distribution" widget="analytic_distribution" optional="show"
+                                           options="{'product_field': 'product_id', 'account_field': 'account_id'}"
+                                           business_domain_compute="parent.move_type in ['out_invoice', 'out_refund', 'out_receipt'] and 'invoice' or parent.move_type in ['in_invoice', 'in_refund', 'in_receipt'] and 'bill' or 'general'"/>
+                                    <field name="quantity" optional="show" on_change="1"
+                                           modifiers="{&quot;column_invisible&quot;: true}"/>
+                                    <field name="product_uom_category_id"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="price_unit" string="Price" on_change="1"/>
+                                    <field name="discount" string="Disc.%" optional="hide" on_change="1"/>
+                                    <field name="tax_ids" widget="many2many_tags"
+                                           domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain), ('company_id', '=', parent.company_id), ('country_id', '=', parent.tax_country_id)]"
+                                           context="{'append_type_to_tax_name': not parent.invoice_filter_type_domain}"
+                                           options="{'no_create': True}" optional="show" on_change="1" can_create="true"
+                                           can_write="true"/>
+                                    <field name="price_subtotal" string="Subtotal" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <!-- Others fields -->
+                                    <field name="partner_id" on_change="1"
+                                           modifiers="{&quot;column_invisible&quot;: true}" can_create="true"
+                                           can_write="true"/>
+                                    <field name="currency_id" on_change="1"
+                                           modifiers="{&quot;required&quot;: true, &quot;column_invisible&quot;: true}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="company_id" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="company_currency_id"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="display_type" force_save="1" on_change="1"
+                                           modifiers="{&quot;required&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <!-- /l10n_in_edi.test_edi_json -->
+                                    <!-- required for @api.onchange('product_id') -->
+                                    <field name="product_uom_id" on_change="1"
+                                           modifiers="{&quot;column_invisible&quot;: true}" can_create="true"
+                                           can_write="true"/>
+                                    <field name="previous_qty" string="previous qty" optional="show" auto_width="True"
+                                           on_change="1"/>
+                                    <field name="previous_percentage"
+                                           string="previous percent                  of completion" optional="show"
+                                           auto_width="True" on_change="1"/>
+                                    <field name="total_qty" string="total qty" optional="show" auto_width="True"
+                                           on_change="1"/>
+                                    <field name="completion_percentage" string="percent                 of Complete"
+                                           style="width: 500px;" optional="show" auto_width="True" on_change="1"/>
+
+
+                                    <field name="comulative_invoice" string="cumulative invoice" style="width: 50px;"
+                                           optional="show" auto_width="True" modifiers="{&quot;readonly&quot;: true}"/>
+
+                                    <field name="price_subtotal" string="subtotal" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="price_subtotal" string="current subtotal" optional="show"
+                                           auto_width="True" on_change="1" modifiers="{&quot;readonly&quot;: true}"/>
+                                </tree>
+                                <kanban class="o_kanban_mobile">
+                                    <!-- Displayed fields -->
+                                    <field name="name"/>
+                                    <field name="product_id" on_change="1"/>
+                                    <field name="price_subtotal" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: true}"/>
+                                    <field name="quantity" on_change="1"/>
+                                    <field name="product_uom_category_id"
+                                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                    <field name="price_unit" on_change="1"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div t-attf-class="oe_kanban_card oe_kanban_global_click ps-0 pe-0 {{ record.display_type.raw_value ? 'o_is_' + record.display_type.raw_value : '' }}">
+                                                <t t-if="!['line_note', 'line_section'].includes(record.display_type.raw_value)">
+                                                    <div class="row g-0">
+                                                        <div class="col-2 pe-3">
+                                                            <img t-att-src="kanban_image('product.product', 'image_128', record.product_id.raw_value)"
+                                                                 t-att-title="record.product_id.value"
+                                                                 t-att-alt="record.product_id.value"
+                                                                 style="max-width: 100%;"/>
+                                                        </div>
+                                                        <div class="col-10">
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                    <strong t-esc="record.product_id.value"/>
+                                                                </div>
+                                                                <div class="col-auto">
+                                                                    <strong class="float-end text-end">
+                                                                        <t t-esc="record.price_subtotal.value"/>
+                                                                    </strong>
+                                                                </div>
+                                                            </div>
+                                                            <div class="text-muted">
+                                                                Quantity:
+                                                                <t t-esc="record.quantity.value"/>
+                                                            </div>
+                                                            <div class="text-muted">
+                                                                Unit Price:
+                                                                <t t-esc="record.price_unit.value"/>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                                <t t-if="record.display_type.raw_value === 'line_section' || record.display_type.raw_value === 'line_note'">
+                                                    <div class="row">
+                                                        <div class="col-12">
+                                                            <t t-esc="record.name.value"/>
+                                                        </div>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </t>
+                                    </templates>
+
+                                    <!-- Others fields -->
+                                    <field name="currency_id" on_change="1"
+                                           modifiers="{&quot;invisible&quot;: true, &quot;required&quot;: true}"/>
+                                    <field name="company_currency_id"
+                                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                    <field name="display_type" force_save="1" on_change="1"
+                                           modifiers="{&quot;invisible&quot;: true, &quot;required&quot;: true}"/>
+                                </kanban>
+
+                                <!-- Form view to cover mobile use -->
+                                <form>
+                                    <sheet>
+                                        <field name="display_type" on_change="1"
+                                               modifiers="{&quot;invisible&quot;: true, &quot;required&quot;: true}"/>
+                                        <field name="company_id" on_change="1"
+                                               modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                        <field name="partner_id" on_change="1" modifiers="{&quot;invisible&quot;: true}"
+                                               can_create="true" can_write="true"/>
+                                        <group>
+                                            <field name="product_id" widget="many2one_barcode" on_change="1"
+                                                   can_create="true" can_write="true"/>
+                                            <field name="quantity" on_change="1"/>
+                                            <field name="product_uom_category_id"
+                                                   modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                            <field name="price_unit" on_change="1"/>
+                                            <field name="discount" string="Disc.%" on_change="1"/>
+                                        </group>
+                                        <group>
+                                            <field name="account_id" options="{'no_create': True}"
+                                                   domain="[('company_id', '=', company_id)]"
+                                                   context="{'partner_id': partner_id, 'move_type': parent.move_type}"
+                                                   on_change="1" can_create="true" can_write="true"/>
+                                            <field name="tax_ids" widget="many2many_tags" on_change="1"
+                                                   can_create="true" can_write="true"/>
+                                            <field name="analytic_distribution" widget="analytic_distribution"/>
+                                        </group>
+                                        <label for="name" string="Description"
+                                               modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;in&quot;, [&quot;line_note&quot;, &quot;line_section&quot;]]]}"/>
+                                        <label for="name" string="Section"
+                                               modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;!=&quot;, &quot;line_section&quot;]]}"/>
+                                        <label for="name" string="Note"
+                                               modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;!=&quot;, &quot;line_note&quot;]]}"/>
+                                        <field name="name" widget="text"/>
+                                        <group>
+                                            <field name="price_subtotal" string="Subtotal" on_change="1"
+                                                   modifiers="{&quot;readonly&quot;: true}"/>
+                                        </group>
+                                    </sheet>
+                                    <field name="completion_percentage" string="percent of completion" auto_width="True"
+                                           on_change="1"/>
+                                    <field name="total_qty" string="Total Qty" auto_width="True" on_change="1"/>
+                                </form>
+                            </field>
+                            <group col="12" class="oe_invoice_lines_tab">
+                                <group colspan="8">
+                                    <field name="narration" placeholder="Terms and Conditions" colspan="2" nolabel="1"/>
+                                </group>
+                                <!-- Totals (only invoices / receipts) -->
+                                <group colspan="4">
+                                    <group class="oe_subtotal_footer oe_right"
+                                           modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]], [&quot;payment_state&quot;, &quot;=&quot;, &quot;invoicing_legacy&quot;]]}">
+
+                                        <field name="tax_totals" widget="account-tax-totals-field" nolabel="1"
+                                               colspan="2" on_change="1"
+                                               modifiers="{&quot;readonly&quot;: [&quot;|&quot;, [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;], &quot;&amp;&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;in_receipt&quot;]], [&quot;quick_edit_mode&quot;, &quot;=&quot;, false]]}"/>
+
+                                        <field name="invoice_payments_widget" colspan="2" nolabel="1" widget="payment"
+                                               modifiers="{&quot;readonly&quot;: true}"/>
+                                        <field name="amount_residual" class="oe_subtotal_footer_separator" on_change="1"
+                                               modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;=&quot;, &quot;draft&quot;]], &quot;readonly&quot;: true}"/>
+                                    </group>
+                                    <field name="invoice_outstanding_credits_debits_widget"
+                                           class="oe_invoice_outstanding_credits_debits" colspan="2" nolabel="1"
+                                           widget="payment"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;posted&quot;]], &quot;readonly&quot;: true}"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page id="aml_tab" string="Journal Items" name="aml_tab">
+                            <field name="line_ids" mode="tree,kanban"
+                                   context="{                                            'default_move_type': context.get('default_move_type'),                                            'line_ids': line_ids,                                            'journal_id': journal_id,                                            'default_partner_id': commercial_partner_id,                                            'default_currency_id': currency_id or company_currency_id,                                            'kanban_view_ref': 'account.account_move_line_view_kanban_mobile',                                        }"
+                                   on_change="1"
+                                   modifiers="{&quot;invisible&quot;: [[&quot;payment_state&quot;, &quot;=&quot;, &quot;invoicing_legacy&quot;], [&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;not in&quot;, [&quot;draft&quot;]]]}">
+                                <tree editable="bottom" string="Journal Items"
+                                      decoration-muted="display_type in ('line_section', 'line_note')"
+                                      default_order="sequence, id">
+                                    <!-- Displayed fields -->
+                                    <field name="account_id"
+                                           domain="[('deprecated', '=', False), ('company_id', '=', parent.company_id)]"
+                                           on_change="1"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;]]], &quot;required&quot;: [[&quot;display_type&quot;, &quot;not in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;]]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="partner_id" optional="show"
+                                           domain="['|', ('parent_id', '=', False), ('is_company', '=', True)]"
+                                           on_change="1"
+                                           modifiers="{&quot;column_invisible&quot;: [[&quot;parent.move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="name" widget="section_and_note_text" optional="show"/>
+                                    <field name="analytic_distribution" widget="analytic_distribution" optional="show"
+                                           options="{'account_field': 'account_id'}"
+                                           business_domain_compute="parent.move_type in ['out_invoice', 'out_refund', 'out_receipt'] and 'invoice' or parent.move_type in ['in_invoice', 'in_refund', 'in_receipt'] and 'bill' or 'general'"/>
+                                    <field name="date_maturity" optional="hide"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;]]]}"/>
+                                    <field name="amount_currency" optional="hide" on_change="1"/>
+                                    <field name="currency_id" options="{'no_create': True}" optional="hide"
+                                           on_change="1"
+                                           modifiers="{&quot;required&quot;: true, &quot;column_invisible&quot;: [[&quot;parent.move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="tax_ids" widget="autosave_many2many_tags" optional="hide"
+                                           domain="[('type_tax_use', '=?', parent.invoice_filter_type_domain)]"
+                                           context="{'append_type_to_tax_name': not parent.invoice_filter_type_domain}"
+                                           options="{'no_create': True}" force_save="1" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: [&quot;|&quot;, &quot;|&quot;, [&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;]], [&quot;tax_line_id&quot;, &quot;!=&quot;, false], &quot;&amp;&quot;, [&quot;parent.move_type&quot;, &quot;in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]], [&quot;account_type&quot;, &quot;in&quot;, [&quot;asset_receivable&quot;, &quot;liability_payable&quot;]]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="debit" sum="Total Debit" on_change="1"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;]]], &quot;readonly&quot;: [[&quot;parent.move_type&quot;, &quot;in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]], [&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;, &quot;product&quot;]]]}"/>
+                                    <field name="credit" sum="Total Credit" on_change="1"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;]]], &quot;readonly&quot;: [[&quot;parent.move_type&quot;, &quot;in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;, &quot;out_receipt&quot;, &quot;in_receipt&quot;]], [&quot;display_type&quot;, &quot;in&quot;, [&quot;line_section&quot;, &quot;line_note&quot;, &quot;product&quot;]]]}"/>
+                                    <field name="balance" on_change="1"
+                                           modifiers="{&quot;column_invisible&quot;: true}"/>
+                                    <field name="discount_date" string="Discount Date" optional="hide"/>
+                                    <field name="discount_amount_currency" string="Discount Amount" optional="hide"/>
+
+                                    <field name="tax_tag_ids" widget="many2many_tags" string="Tax Grids" optional="show"
+                                           options="{'no_create': True}"
+                                           domain="[                                                     ('applicability', '=', 'taxes'),                                                     '|', ('country_id', '=', parent.tax_country_id),                                                     ('country_id', '=', False),                                                 ]"
+                                           on_change="1" can_create="true" can_write="true"/>
+
+                                    <field name="tax_tag_invert" optional="hide"
+                                           modifiers="{&quot;readonly&quot;: true}"/>
+
+                                    <!-- Buttons -->
+                                    <button name="action_automatic_entry" type="object" icon="fa-calendar"
+                                            string="Cut-Off" aria-label="Change Period" class="float-end"
+                                            context="{'hide_automatic_options': 1, 'default_action': 'change_period'}"
+                                            modifiers="{&quot;invisible&quot;: [[&quot;account_internal_group&quot;, &quot;not in&quot;, [&quot;income&quot;, &quot;expense&quot;]]], &quot;column_invisible&quot;: [&quot;|&quot;, [&quot;parent.move_type&quot;, &quot;=&quot;, &quot;entry&quot;], [&quot;parent.state&quot;, &quot;!=&quot;, &quot;posted&quot;]]}"/>
+
+                                    <!-- Others fields -->
+                                    <field name="tax_line_id" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="company_currency_id"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="display_type" force_save="1" on_change="1"
+                                           modifiers="{&quot;required&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="company_id" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="sequence" modifiers="{&quot;column_invisible&quot;: true}"/>
+                                    <field name="id"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="account_internal_group"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                    <field name="account_type"
+                                           modifiers="{&quot;readonly&quot;: true, &quot;column_invisible&quot;: true}"/>
+                                </tree>
+                                <!-- Form view to cover mobile use -->
+                                <form>
+                                    <group>
+                                        <field name="account_id"
+                                               domain="[('company_id', '=', parent.company_id), ('deprecated', '=', False)]"
+                                               on_change="1" can_create="true" can_write="true"/>
+                                        <field name="partner_id"
+                                               domain="['|', ('parent_id', '=', False), ('is_company', '=', True)]"
+                                               on_change="1" can_create="true" can_write="true"/>
+                                        <field name="name"/>
+                                        <field name="analytic_distribution" widget="analytic_distribution"/>
+                                        <field name="amount_currency" on_change="1"/>
+                                        <field name="company_currency_id"
+                                               modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                        <field name="company_id" on_change="1"
+                                               modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                        <field name="currency_id" options="{'no_create': True}" on_change="1"
+                                               modifiers="{&quot;required&quot;: true}" can_create="true"
+                                               can_write="true"/>
+                                        <field name="debit" sum="Total Debit" on_change="1"/>
+                                        <field name="credit" sum="Total Credit" on_change="1"/>
+                                        <field name="balance" on_change="1" modifiers="{&quot;invisible&quot;: true}"/>
+                                        <field name="tax_ids" string="Taxes Applied" widget="autosave_many2many_tags"
+                                               options="{'no_create': True}" on_change="1" can_create="true"
+                                               can_write="true"/>
+                                        <field name="date_maturity"/>
+                                    </group>
+                                </form>
+                            </field>
+                            <div class="alert alert-info text-center mb-0" role="alert"
+                                 modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;payment_state&quot;, &quot;!=&quot;, &quot;invoicing_legacy&quot;], [&quot;move_type&quot;, &quot;=&quot;, &quot;entry&quot;]]}">
+                                <span>This entry has been generated through the Invoicing app, before installing
+                                    Accounting. Its balance has been imported separately.
+                                </span>
+                            </div>
+                        </page>
+                        <page id="other_tab" string="Other Info" name="other_info"
+                              modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;]]]}">
+                            <group id="other_tab_group">
+                                <group string="Invoice" name="sale_info_group"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;]]]}">
+                                    <label for="ref" string="Customer Reference"/>
+                                    <field name="ref" nolabel="1" on_change="1"/>
+                                    <field name="user_id" force_save="1"
+                                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                    <field name="invoice_user_id" domain="[('share', '=', False)]"
+                                           widget="many2one_avatar_user" on_change="1" can_create="true"
+                                           can_write="true"/>
+
+                                    <field name="invoice_origin" string="Source Document" force_save="1"
+                                           modifiers="{&quot;invisible&quot;: true, &quot;readonly&quot;: true}"/>
+                                    <field name="partner_bank_id" context="{'default_partner_id': bank_partner_id}"
+                                           domain="[('partner_id', '=', bank_partner_id)]"
+                                           modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="qr_code_method"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;display_qr_code&quot;, &quot;=&quot;, false]]}"/>
+                                </group>
+                                <group string="Accounting" name="accounting_info_group"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;]]]}">
+                                    <field name="company_id" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="invoice_incoterm_id" can_create="true" can_write="true"/>
+                                    <field name="fiscal_position_id" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;posted&quot;, &quot;cancel&quot;]]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="invoice_source_email" widget="email"
+                                           modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;in_invoice&quot;, &quot;in_refund&quot;]], [&quot;invoice_source_email&quot;, &quot;=&quot;, false]]}"/>
+                                    <field name="auto_post" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]], &quot;required&quot;: true}"/>
+                                    <field name="auto_post_until"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;auto_post&quot;, &quot;in&quot;, [&quot;no&quot;, &quot;at_date&quot;]]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"/>
+                                    <field name="to_check"/>
+                                </group>
+                                <group string="Marketing" name="utm_link"
+                                       modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;]]]}">
+
+                                </group>
+                            </group>
+                        </page>
+                        <page id="edi_documents" string="EDI Documents"
+                              modifiers="{&quot;invisible&quot;: [[&quot;edi_document_ids&quot;, &quot;=&quot;, []]]}">
+                            <field name="edi_document_ids" on_change="1">
+                                <tree create="false" delete="false" edit="false" decoration-danger="error" no_open="1">
+                                    <field name="name" modifiers="{&quot;readonly&quot;: true}"/>
+                                    <field name="edi_format_name" modifiers="{&quot;readonly&quot;: true}"/>
+                                    <field name="state" on_change="1"/>
+                                    <field name="error" on_change="1" modifiers="{&quot;column_invisible&quot;: true}"/>
+                                    <field name="blocking_level" on_change="1"
+                                           modifiers="{&quot;column_invisible&quot;: true}"/>
+                                    <button name="action_export_xml" type="object" class="oe_link oe_inline"
+                                            string="Download"
+                                            modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;error&quot;, &quot;=&quot;, false], [&quot;blocking_level&quot;, &quot;=&quot;, &quot;info&quot;]]}"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page id="other_tab_entry" string="Other Info" name="other_info"
+                              modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]]}">
+                            <group id="other_tab_entry_group">
+                                <group name="misc_group">
+                                    <field name="auto_post" on_change="1"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]], &quot;required&quot;: true}"/>
+                                    <field name="reversed_entry_id"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]], &quot;readonly&quot;: true}"/>
+                                    <field name="auto_post_until"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;auto_post&quot;, &quot;in&quot;, [&quot;no&quot;, &quot;at_date&quot;]]], &quot;readonly&quot;: [[&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"/>
+                                    <field name="to_check"
+                                           modifiers="{&quot;invisible&quot;: [[&quot;move_type&quot;, &quot;!=&quot;, &quot;entry&quot;]]}"/>
+                                </group>
+                                <group>
+                                    <field name="fiscal_position_id" on_change="1"
+                                           modifiers="{&quot;readonly&quot;: [[&quot;state&quot;, &quot;in&quot;, [&quot;posted&quot;, &quot;cancel&quot;]]]}"
+                                           can_create="true" can_write="true"/>
+                                    <field name="company_id" on_change="1" modifiers="{&quot;required&quot;: true}"
+                                           can_create="true" can_write="true"/>
+                                </group>
+                            </group>
+                            <!-- Internal note -->
+                            <field name="narration" placeholder="Add an internal note..." nolabel="1" height="50"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!-- Attachment preview -->
+                <div class="o_attachment_preview"
+                     modifiers="{&quot;invisible&quot;: [&quot;|&quot;, [&quot;move_type&quot;, &quot;not in&quot;, [&quot;out_invoice&quot;, &quot;out_refund&quot;, &quot;in_invoice&quot;, &quot;in_refund&quot;]], [&quot;state&quot;, &quot;!=&quot;, &quot;draft&quot;]]}"/>
+                <!-- Chatter -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+
+     <record id="view_move266_tree" model="ir.ui.view">
+            <field name="name">account.move2.tree</field>
+            <field name="model">account.move</field>
+            <field name="arch" type="xml">
+           <tree string="Invoices"
+                      js_class="account_tree"
+                      decoration-info="state == 'draft'"
+                      decoration-muted="state == 'cancel'"
+                      expand="context.get('expand', False)"
+                      sample="1">
+                    <header>
+                        <button name="action_register_payment" type="object" string="Register Payment"
+                            groups="account.group_account_user"
+                            invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund','in_receipt')"/>
+                    </header>
+                    <field name="made_sequence_hole" invisible="1"/>
+                    <field name="name" decoration-bf="1" decoration-danger="made_sequence_hole"/>
+                    <field name="invoice_partner_display_name"  groups="base.group_user" string="Customer" />
+                    <field name="construction"  invisible="1" />
+                    <field name="construction_project_id"   />
+                    <field name="invoice_date" optional="show" string="Invoice Date"/>
+                    <field name="invoice_date_due" widget="remaining_days" optional="show" attrs="{'invisible': [['payment_state', 'in', ('paid', 'in_payment', 'reversed')]]}"/>
+                    <field name="activity_ids" widget="list_activity" optional="show"/>
+                    <field name="amount_untaxed_signed" string="Tax Excluded" sum="Total" optional="show"/>
+                    <field name="amount_tax_signed" string="Tax" sum="Total" optional="hide"/>
+                    <field name="amount_total_signed" string="Total" sum="Total" decoration-bf="1" optional="show"/>
+                    <field name="amount_total_in_currency_signed" string="Total in currency" groups="base.group_multi_currency"  optional="show"/>
+
+                    <field name="amount_residual_signed" string="Amount Due" sum="Amount Due" optional="hide"/>
+                    <field name="currency_id" groups="base.group_multi_currency" optional="hide"/>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="to_check" optional="hide" widget="boolean_toggle"/>
+                    <field name="payment_state"
+                           widget="badge"
+                           decoration-danger="payment_state == 'not_paid'"
+                           decoration-warning="payment_state in ('partial', 'in_payment')"
+                           decoration-success="payment_state in ('paid', 'reversed')"
+                           attrs="{'invisible': [('payment_state', 'in', ('invoicing_legacy'))]}"
+                           optional="show"/>
+                    <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" optional="show"/>
+                    <field name="move_type" invisible="context.get('default_move_type', True)"/>
+                  </tree>
+            </field>
+        </record>
+
+
+
+
+      <record id="action_menuitem2_construction" model="ir.actions.act_window">
+    <field name="name">Contractor/Subcontractor  Bills</field>
+    <field name="res_model">account.move</field>
+    <field name="domain">[('move_type', '=', 'in_invoice'), ('construction', '=', True)]</field>
+    <field name="context">{'default_move_type': 'in_invoice'}</field>
+    <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+            Create a customer invoice
+        </p>
+        <p>
+            Create invoices, register payments, and keep track of the discussions with your customers.
+        </p>
+    </field>
+    <!-- تحديد كلا العرضين، الشجرة والنموذج -->
+    <field name="view_mode">tree,form</field>
+    <field name="views" eval="[
+        (ref('view_move266_tree'), 'tree'),
+        (ref('view_move6_form'), 'form')
+    ]"/>
+</record>
+
+        <record id='action_menuitem5555_construction' model='ir.actions.act_window'>
+        <field name="name">Contractor/Subcontractor  Bills</field>
+        <field name="res_model">account.move</field>
+         <field name="view_id" ref="view_out_invoice2_tree"/>
+        <field name="domain">[('move_type', '=', 'in_invoice'),('construction', '=', True)]</field>
+            <field name="context">{'default_move_type': 'in_invoice'}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+
+              </p><p>
+
+              </p>
+            </field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_construction2_invoices"
+              name="Contractor/Subcontractor  Bills"
+              parent="menu_construction_root"
+              action="action_menuitem5555_construction"
+              sequence="20"/>
+
+</odoo>
