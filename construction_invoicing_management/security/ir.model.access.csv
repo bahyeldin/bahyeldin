@@ -1,2 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-construction_invoicing_management.access_construction_projects,access_construction_projects,construction_invoicing_management.model_construction_projects,base.group_user,1,1,1,1
