@@ -1,0 +1,164 @@
+<odoo>
+
+    <record id="view_move6_form" model="ir.ui.view">
+        <field name="name">account.move.form.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_move_form"/>
+        <field name="arch" type="xml">
+             <field name="partner_id" position="after">
+                <field name="construction"/>
+
+                <field name="construction_project_id"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
+
+            </field>
+
+             <xpath expr="//field[@name='invoice_line_ids']/tree" position="inside" decoration-info="True">
+                <field name="construction" string="construction" optional="hide" style="width: 400px;"
+                       />
+             </xpath>
+
+
+
+
+            <xpath expr="//field[@name='invoice_line_ids']/tree" position="inside" decoration-info="True">
+                <field name="previous_qty" string="Previous Qty" optional="show" style="width: 400px;"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
+                <field name="previous_percentage" string="Previous % " optional="show"
+                       auto_width="True"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
+                <field name="total_qty" string="Total Qty" optional="show" auto_width="True"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
+                <field name="completion_percentage" string="Completion %" style="width: 500px;" optional="show"
+                       auto_width="True"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
+                 <field name="quantity" string="Quantity" optional="show" auto_width="True"
+                       attrs="{'invisible': [('construction', '=', True)]}"/>
+                <field name="comulative_invoice" readonly="1" string="Cumulative Invoice" style="width: 50px;"
+                       optional="hide" auto_width="True"
+                       attrs="{'invisible': [('construction', '=', False)]}"/>
+                 <field name="price_subtotal"  string="Subtotal" style="width: 50px;"
+                       optional="show" auto_width="True"
+                      />
+
+
+            </xpath>
+
+            <xpath expr="//field[@name='quantity']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+
+            <xpath expr="//field[@name='price_subtotal']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+
+            <xpath expr="//field[@name='invoice_line_ids']/form" position="inside">
+                <field name="completion_percentage" string="Completion %" auto_width="True"/>
+                <field name="total_qty" string="Total Qty" auto_width="True"/>
+
+            </xpath>
+            <xpath expr="//tree/control" position="inside">
+                <button name="action_set_previous_qty" type="object"
+                        string="Rest previous(qty and %)to equal current (qty and %)"/>
+
+
+            </xpath>
+
+        </field>
+    </record>
+
+
+     <record id="view_move266_tree" model="ir.ui.view">
+            <field name="name">account.move2.tree</field>
+            <field name="model">account.move</field>
+            <field name="arch" type="xml">
+           <tree string="Invoices"
+                      js_class="account_tree"
+                      decoration-info="state == 'draft'"
+                      decoration-muted="state == 'cancel'"
+                      expand="context.get('expand', False)"
+                      sample="1">
+                    <header>
+                        <button name="action_register_payment" type="object" string="Register Payment"
+                            groups="account.group_account_user"
+                            invisible="context.get('default_move_type') not in ('out_invoice', 'out_refund', 'out_receipt', 'in_invoice', 'in_refund','in_receipt')"/>
+                    </header>
+                    <field name="made_sequence_hole" invisible="1"/>
+                    <field name="name" decoration-bf="1" decoration-danger="made_sequence_hole"/>
+                    <field name="invoice_partner_display_name"  groups="base.group_user" string="Customer" />
+                    <field name="construction"  invisible="1" />
+                    <field name="construction_project_id"   />
+                    <field name="invoice_date" optional="show" string="Invoice Date"/>
+                    <field name="invoice_date_due" widget="remaining_days" optional="show" attrs="{'invisible': [['payment_state', 'in', ('paid', 'in_payment', 'reversed')]]}"/>
+                    <field name="activity_ids" widget="list_activity" optional="show"/>
+                    <field name="amount_untaxed_signed" string="Tax Excluded" sum="Total" optional="show"/>
+                    <field name="amount_tax_signed" string="Tax" sum="Total" optional="hide"/>
+                    <field name="amount_total_signed" string="Total" sum="Total" decoration-bf="1" optional="show"/>
+                    <field name="amount_total_in_currency_signed" string="Total in currency" groups="base.group_multi_currency"  optional="show"/>
+
+                    <field name="amount_residual_signed" string="Amount Due" sum="Amount Due" optional="hide"/>
+                    <field name="currency_id" groups="base.group_multi_currency" optional="hide"/>
+                    <field name="company_currency_id" invisible="1"/>
+                    <field name="to_check" optional="hide" widget="boolean_toggle"/>
+                    <field name="payment_state"
+                           widget="badge"
+                           decoration-danger="payment_state == 'not_paid'"
+                           decoration-warning="payment_state in ('partial', 'in_payment')"
+                           decoration-success="payment_state in ('paid', 'reversed')"
+                           attrs="{'invisible': [('payment_state', 'in', ('invoicing_legacy'))]}"
+                           optional="show"/>
+                    <field name="state" widget="badge" decoration-success="state == 'posted'" decoration-info="state == 'draft'" optional="show"/>
+                    <field name="move_type" invisible="context.get('default_move_type', True)"/>
+                  </tree>
+            </field>
+        </record>
+
+
+
+
+      <record id="action_menuitem2_construction" model="ir.actions.act_window">
+    <field name="name">Contractor/Subcontractor  Bills</field>
+    <field name="res_model">account.move</field>
+    <field name="domain">[('move_type', '=', 'in_invoice'), ('construction', '=', True)]</field>
+    <field name="context">{'default_move_type': 'in_invoice'}</field>
+    <field name="help" type="html">
+        <p class="o_view_nocontent_smiling_face">
+            Create a customer invoice
+        </p>
+        <p>
+            Create invoices, register payments, and keep track of the discussions with your customers.
+        </p>
+    </field>
+    <!-- تحديد كلا العرضين، الشجرة والنموذج -->
+    <field name="view_mode">tree,form</field>
+    <field name="views" eval="[
+        (ref('view_move266_tree'), 'tree'),
+        (ref('view_move6_form'), 'form')
+    ]"/>
+</record>
+
+        <record id='action_menuitem5555_construction' model='ir.actions.act_window'>
+        <field name="name">Contractor/Subcontractor  Bills</field>
+        <field name="res_model">account.move</field>
+         <field name="view_id" ref="view_out_invoice2_tree"/>
+        <field name="domain">[('move_type', '=', 'in_invoice'),('construction', '=', True)]</field>
+            <field name="context">{'default_move_type': 'in_invoice'}</field>
+            <field name="help" type="html">
+              <p class="o_view_nocontent_smiling_face">
+
+              </p><p>
+
+              </p>
+            </field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_construction2_invoices"
+              name="Contractor/Subcontractor  Bills"
+              parent="menu_construction_root"
+              action="action_menuitem5555_construction"
+              sequence="20"/>
+
+</odoo>
