@@ -5,7 +5,7 @@
     'summary': 'Construction invoices Management Module is a specially designed module for managing and generating invoices '
                'for construction projects. This module is ideal for construction companies that need to create detailed and accurate invoices'
                ' for their clients and contractors reflecting all work completed ',
-    'price': '50',
+    'price': '20',
     'currency': 'USD',
     'description': """
         Construction Management
