@@ -4,6 +4,8 @@
     'version': '1.0',
     'category': 'Warehouse',
     'license': 'AGPL-3',
+     'price': '10',
+    'currency': 'USD',
     'summary': 'Prevent stock moves if there is not enough stock',
     'description': '''
        
